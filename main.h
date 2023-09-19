@@ -4,19 +4,20 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <ctype.h>
+#include <ctype.h> /* Include <ctype.h> for isdigit */
 
+/* Macros */
 #define UNUSED(x) (void)(x)
 #define BUFF_SIZE 1024
 
-/* FLAGS */
+/* Indicator */
 #define I_MINUS 1
 #define I_PLUS 2
 #define I_ZERO 4
 #define I_HASH 8
 #define I_SPACE 16
 
-/* SIZES */
+/* Retrieve_sizes */
 #define RS_LONG 2
 #define RS_SHORT 1
 
@@ -28,8 +29,8 @@
  */
 struct fmt
 {
-	char fmt;
-	int (*fn)(va_list, char[], int, int, int, int);
+    char fmt;
+    int (*fn)(va_list, char[], int, int, int, int);
 };
 
 /**
@@ -88,3 +89,4 @@ int write_pointer(char buffer[], int ind, int length, int width, int flags, char
 int write_unsgnd(int is_negative, int ind, char buffer[], int flags, int width, int precision, int size);
 
 #endif /* MAIN_H */
+
