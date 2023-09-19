@@ -1,34 +1,36 @@
 #include "main.h"
 
 /**
- * _ind - Calculate active indicators
- * @format: Formatted string where to print the arguments
- * @i: Pointer to an integer parameter.
- * 
- * Return: Indicator.
+ * calculateActiveIndicators - Calculate active indicators
+ * @formatString: Formatted string where to find the indicators
+ * @startIndex: Pointer to an integer parameter.
+ *
+ * Return: Active indicators.
  */
-int _ind(const char *format, int *i)
+int calculateActiveIndicators(const char *formatString, int *startIndex)
 {
-    int j, curr_i;
-    int flags = 0;
+	int index, currentStartIndex;
+	int activeFlags = 0;
 
-    const char INDICATOR_CH[] = {'-', '+', '0', '#', ' ', '\0'};
-    const int INDICATOR_ARR[] = {I_MINUS, I_PLUS, I_ZERO, I_HASH, I_SPACE, 0};
+	const char INDICATOR_CHARACTERS[] = {'-', '+', '0', '#', ' ', '\0'};
+	const int INDICATOR_VALUES[] = {I_MINUS, I_PLUS, I_ZERO, I_HASH, I_SPACE, 0};
 
-    for (curr_i = *i + 1; format[curr_i] != '\0'; curr_i++)
-    {
-        for (j = 0; INDICATOR_CH[j] != '\0'; j++)
-        {
-            if (format[curr_i] == INDICATOR_CH[j])
-            {
-                flags |= INDICATOR_ARR[j];
-                break;
-            }
-        }
+	for (currentStartIndex = *startIndex + 1; formatString[currentStartIndex] != '\0'; currentStartIndex++)
+	{
+		for (index = 0; INDICATOR_CHARACTERS[index] != '\0'; index++)
+		{
+			if (formatString[currentStartIndex] == INDICATOR_CHARACTERS[index])
+			{
+				activeFlags |= INDICATOR_VALUES[index];
+				break;
+			}
+			if (INDICATOR_CHARACTERS[index] == '\0')
+			{
+				break;
+			}
+		}
+	}
 
-        if (INDICATOR_CH[j] == '\0')
-            break;
-    }
-
-    return flags;
+	return (activeFlags);
 }
+
