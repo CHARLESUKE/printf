@@ -1,70 +1,59 @@
-#include <stdio.h>
 #include <stdarg.h>
-#include "main.h"
+#include <unistd.h>
 
 int _printf(const char *format, ...)
 {
 	va_list args;
 	int printed_chars = 0;
-	char current_char;
 
 	va_start(args, format);
 
-	while ((current_char = *format))
+	while (*format)
 	{
-		if (current_char != '%')
+		if (*format == '%')
 		{
-			putchar(current_char);
-			printed_chars++;
+			format++;
+			if (*format == '\0')
+			{
+				break;
+			}
+
+			if (*format == 'c')
+			{
+				/* Handle character specifier */
+				char c = va_arg(args, int);
+				write(1, &c, 1);
+				printed_chars++;
+			}
+			else if (*format == 's')
+			{
+				/* Handle string specifier */
+				char *str = va_arg(args, char *);
+				while (*str)
+				{
+					write(1, str, 1);
+					str++;
+					printed_chars++;
+				}
+			}
+			else if (*format == '%')
+			{
+				/* Handle '%' specifier */
+				write(1, "%", 1);
+				printed_chars++;
+			}
 		}
 		else
 		{
-			/* Handle format specifier */
-			current_char = *(++format);
-			switch (current_char)
-			{
-				case 'd':
-					printed_chars += printf("%d", va_arg(args, int));
-					break;
-				case 'i':
-					printed_chars += printf("%d", va_arg(args, int));
-					break;
-				case 'u':
-					printed_chars += printf("%u", va_arg(args, unsigned int));
-					break;
-				case 'o':
-					printed_chars += printf("%o", va_arg(args, unsigned int));
-					break;
-				case 'x':
-					printed_chars += printf("%x", va_arg(args, unsigned int));
-					break;
-				case 'X':
-					printed_chars += printf("%X", va_arg(args, unsigned int));
-					break;
-				case 'c':
-					putchar(va_arg(args, int));
-					printed_chars++;
-					break;
-				case 's':
-					printed_chars += printf("%s", va_arg(args, char *));
-					break;
-				case 'p':
-					printed_chars += printf("%p", va_arg(args, void *));
-					break;
-				case '%':
-					putchar('%');
-					printed_chars++;
-					break;
-				default:
-					putchar('%');
-					putchar(current_char);
-					printed_chars += 2;
-					break;
-			}
+			/* Regular character, write it to stdout */
+			write(1, format, 1);
+			printed_chars++;
 		}
 		format++;
 	}
 
 	va_end(args);
-	return printed_chars;
+
+	return (printed_chars);
 }
+
