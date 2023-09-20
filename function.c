@@ -1,24 +1,28 @@
-#include "main.h"
+#include <stdio.h>
+#include <stdarg.h>
+
+#define BUFF_SIZE 256
 
 int custom_printf(const char *format, ...);
-
+int print_binary(int num);
+/*Uncomment the main function to test custom_printf.*/
 int main(void)
 {
 	custom_printf("Character: %c\n", 'A');
 	custom_printf("String: %s\n", "Hello, World!");
 	custom_printf("Percent: %%\n");
 	custom_printf("Integer: %d\n", 42);
-	custom_printf("Binary: %b\n", 42);
+	custom_printf("Binary: %d\n", 42);
 
 	return (0);
 }
+
 int custom_printf(const char *format, ...)
 {
 	va_list args;
+
 	va_start(args, format);
-	
-	int (count);
-	char buffer[BUFF_SIZE];
+	int count = 0;
 
 	while (*format)
 	{
@@ -28,19 +32,20 @@ int custom_printf(const char *format, ...)
 			switch (*format)
 			{
 				case 'c':
-					count += handle_write_char(va_arg(args, int), buffer, 0, 0, 0, 0);
+					count += printf("%c", va_arg(args, int));
 					break;
 				case 's':
-					count += print_string(args, buffer, 0, 0, 0, 0);
+					count += printf("%s", va_arg(args, const char *));
 					break;
 				case '%':
-					count += print_percent(args, buffer, 0, 0, 0, 0);
+					putchar('%');
+					count++;
 					break;
 				case 'd':
-					count += print_int(args, buffer, 0, 0, 0, 0);
+					count += printf("%d", va_arg(args, int));
 					break;
 				case 'b':
-					count += print_binary(args, buffer, 0, 0, 0, 0);
+					count += print_binary(va_arg(args, int));
 					break;
 				default:
 					putchar('%');
@@ -58,6 +63,37 @@ int custom_printf(const char *format, ...)
 	}
 
 	va_end(args);
+	return (count);
+}
+
+int print_binary(int num)
+{
+	char buffer[BUFF_SIZE];
+	int count = 0;
+	int index = 0;
+
+	if (num == 0)
+	{
+		putchar('0');
+		count++;
+	}
+	else
+	{
+		while (num > 0)
+		{
+			buffer[index++] = num % 2 + '0';
+			num = num / 2;
+		}
+
+		buffer[index] = '\0';
+
+		for (int i = index - 1; i >= 0; i--)
+		{
+			putchar(buffer[i]);
+			count++;
+		}
+	}
+
 	return (count);
 }
 
