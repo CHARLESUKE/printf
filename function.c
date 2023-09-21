@@ -1,99 +1,150 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <unistd.h>
+#define UNUSED(x) (void)(x)
+#define I_MINUS 0x01
 
-#define BUFF_SIZE 256
 
-int custom_printf(const char *format, ...);
-int print_binary(int num);
-/*Uncomment the main function to test custom_printf.*/
-int main(void)
+
+
+int write_number(int is_negative, int i, char buffer[], int flags, int width, int precision, int size);
+long int convert_size_number(long int n, int size);
+
+
+/************************* PRINT CHAR *************************/
+
+/* Function prototype for handle_write_char */
+int handle_write_char(char c, char buffer[], int flags, int width, int precision, int size);
+
+/* Function definition for print_char */
+int print_char(va_list types, char buffer[], int flags, int width, int precision, int size)
 {
-	custom_printf("Character: %c\n", 'A');
-	custom_printf("String: %s\n", "Hello, World!");
-	custom_printf("Percent: %%\n");
-	custom_printf("Integer: %d\n", 42);
-	custom_printf("Binary: %d\n", 42);
+	char c = va_arg(types, int);
 
-	return (0);
+	/* Call handle_write_char and return its result */
+	return (handle_write_char(c, buffer, flags, width, precision, size));
 }
 
-int custom_printf(const char *format, ...)
+
+/************************* PRINT A STRING *************************/
+
+int print_string(va_list types, int flags, int width, int precision)
 {
-	va_list args;
+	int length = 0, i;
+	char *str = va_arg(types, char *);
 
-	va_start(args, format);
-	int count = 0;
-
-	while (*format)
+	if (str == NULL)
 	{
-		if (*format == '%')
+		str = "(null)";
+		if (precision >= 6)
+			str = "      ";
+	}
+
+	while (str[length] != '\0')
+		length++;
+
+	if (precision >= 0 && precision < length)
+		length = precision;
+
+	if (width > length)
+	{
+		/* Define I_MINUS as a hexadecimal value (you can adjust the value) */
+		if (flags & I_MINUS)
 		{
-			format++;
-			switch (*format)
-			{
-				case 'c':
-					count += printf("%c", va_arg(args, int));
-					break;
-				case 's':
-					count += printf("%s", va_arg(args, const char *));
-					break;
-				case '%':
-					putchar('%');
-					count++;
-					break;
-				case 'd':
-					count += printf("%d", va_arg(args, int));
-					break;
-				case 'b':
-					count += print_binary(va_arg(args, int));
-					break;
-				default:
-					putchar('%');
-					putchar(*format);
-					count += 2;
-					break;
-			}
+			write(1, &str[0], length);
+			for (i = width - length; i > 0; i--)
+				write(1, " ", 1);
+			return (width);
 		}
 		else
 		{
-			putchar(*format);
-			count++;
+			for (i = width - length; i > 0; i--)
+				write(1, " ", 1);
+			write(1, &str[0], length);
+			return (width);
 		}
-		format++;
 	}
 
-	va_end(args);
-	return (count);
+	return (write(1, str, length));
 }
 
-int print_binary(int num)
+/************************* PRINT PERCENT SIGN *************************/
+
+int print_percent(va_list types, int flags, int width, int precision)
 {
-	char buffer[BUFF_SIZE];
-	int count = 0;
-	int index = 0;
+	UNUSED(types);
+	UNUSED(flags);
+	UNUSED(width);
+	UNUSED(precision);
+	return (write(1, "%%", 1));
+}
 
-	if (num == 0)
+/************************* PRINT INT *************************/
+
+int print_int(va_list types, char buffer[],
+		int flags, int width, int precision, int size)
+{
+	int i = BUFSIZ - 2;
+	int is_negative = 0;
+	long int n = va_arg(types, long int);
+	unsigned long int num;
+
+	n = convert_size_number(n, size);
+
+	if (n == 0)
+		buffer[i--] = '0';
+
+	buffer[BUFSIZ - 1] = '\0';
+	num = (unsigned long int)n;
+
+	if (n < 0)
 	{
-		putchar('0');
-		count++;
+		num = (unsigned long int)((-1) * n);
+		is_negative = 1;
 	}
-	else
+
+	while (num > 0)
 	{
-		while (num > 0)
-		{
-			buffer[index++] = num % 2 + '0';
-			num = num / 2;
-		}
+		buffer[i--] = (num % 10) + '0';
+		num /= 10;
+	}
 
-		buffer[index] = '\0';
+	i++;
 
-		for (int i = index - 1; i >= 0; i--)
+	return (write_number(is_negative, i, buffer, flags, width, precision, size));
+}
+
+/************************* PRINT BINARY *************************/
+
+int print_binary(va_list types, int flags, int width, int precision)
+{
+	unsigned int n, m, i, sum;
+	unsigned int a[32];
+	int count;
+
+	UNUSED(flags);
+	UNUSED(width);
+	UNUSED(precision);
+
+	n = va_arg(types, unsigned int);
+	m = 2147483648; /* (2 ^ 31) */
+	a[0] = n / m;
+	for (i = 1; i < 32; i++)
+	{
+		m /= 2;
+		a[i] = (n / m) % 2;
+	}
+	for (i = 0, sum = 0, count = 0; i < 32; i++)
+	{
+		sum += a[i];
+		if (sum || i == 31)
 		{
-			putchar(buffer[i]);
+			char z = '0' + a[i];
+
+			write(1, &z, 1);
 			count++;
 		}
 	}
-
 	return (count);
 }
 
